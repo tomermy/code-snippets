@@ -1,0 +1,46 @@
+------------------------------------------------------------------------------------------
+Extraction:
+
+// Instead of using basicTransformedNode.createdAt, basicTransformedNode.source etc...
+val basicTransformedNode: BasicTransformedNode = getBasicTransfromNode(nodeWithLabels)
+// This enables direct use of createdAt, source, etc... in the same context
+val BasicTransformedNode(_, createdAt, source, labels) = getBasicTransfromNode(nodeWithLabels)
+
+
+// Good practice when it is needed to validate ALL values are present
+for {
+	lat <- node.lat
+	lon <- node.lon
+} yield Location(lat,lon)
+
+
+------------------------------------------------------------------------------------------
+Endpoints:
+
+// Map of URL param to a tuple of fixed name and a matching JSON transformation lens
+private val nodeTypesToTypeWithLensMap = Map(
+    "locations" -> (LocationNodeType.getName, NodeSemanticsLocationLens),
+    "devices" -> (DeviceNodeType.getName, NodeSemanticsDevicesLens),
+    "people" -> (PersonNodeType.getName, NodeSemanticsPeopleLens)
+  )
+
+// Route sample using a Map to extract variables
+  override def route(user: User): Route = {
+    pathPrefix("nodes_semantics") {
+      get {
+        pathPrefix(nodeTypesToTypeWithLensMap) { nodeTypeWithLens =>
+          pathEndOrSingleSlash {
+            complete {
+              getNodeSemantics(user, nodeTypeWithLens._1)(nodeTypeWithLens._2)
+            }
+          }
+        }
+      }
+    }
+  }
+
+------------------------------------------------------------------------------------------
+
+
+
+
